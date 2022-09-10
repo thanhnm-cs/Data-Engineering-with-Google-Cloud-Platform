@@ -5,12 +5,12 @@ from airflow.contrib.operators.bigquery_operator import BigQueryOperator
 from airflow.utils.dates import days_ago
 
 args = {
-    'owner': 'packt-developer',
+    'owner': 'test',
 }
 
-GCP_PROJECT_ID = 'packt-data-eng-on-gcp'
-INSTANCE_NAME = 'mysql-instance'
-EXPORT_URI = 'gs://packt-data-eng-on-gcp-data-bucket/mysql_export/from_composer/stations/stations.csv'
+GCP_PROJECT_ID = 'nft-platform-345404'
+INSTANCE_NAME = 'mysql-instance-source'
+EXPORT_URI = 'gs://nftrawdata/mysql_export/from_composer/stations/stations.csv'
 SQL_QUERY = "SELECT * FROM apps_db.stations"
 
 export_body = {
@@ -39,7 +39,7 @@ with DAG(
 
     gcs_to_bq_example = GoogleCloudStorageToBigQueryOperator(
     task_id                             = "gcs_to_bq_example",
-    bucket                              = 'packt-data-eng-on-gcp-data-bucket',
+    bucket                              = 'nftrawdata',
     source_objects                      = ['mysql_export/from_composer/stations/stations.csv'],
     destination_project_dataset_table   ='raw_bikesharing.stations',
     schema_fields=[

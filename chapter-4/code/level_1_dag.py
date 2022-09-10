@@ -3,7 +3,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.utils.dates import days_ago
 
 args = {
-    'owner': 'packt-developer',
+    'owner': 'test',
 }
 
 with DAG(
@@ -18,12 +18,16 @@ with DAG(
         bash_command='echo Hello',
     )
 
-    print_world= BashOperator(
+    print_world = BashOperator(
         task_id='print_world',
         bash_command='echo World',
     )
+    ls = BashOperator(
+        task_id='ls',
+        bash_command='pwd; ls -lR',
+    )
 
-    print_hello >> print_world
+    print_hello >> print_world >> ls
 
 if __name__ == "__main__":
     dag.cli()

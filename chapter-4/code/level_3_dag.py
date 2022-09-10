@@ -26,7 +26,7 @@ gcp_project_id = os.environ.get('GCP_PROJECT')
 instance_name  = os.environ.get('MYSQL_INSTANCE_NAME')
 
 # Airflow Variables
-settings = Variable.get("level_3_dag_settings", deserialize_json=True)
+settings = Variable.get("dag_settings", deserialize_json=True)
 
 # DAG Variables
 gcs_source_data_bucket = settings['gcs_source_data_bucket']
