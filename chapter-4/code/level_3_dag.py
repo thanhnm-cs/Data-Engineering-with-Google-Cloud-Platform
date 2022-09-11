@@ -62,7 +62,7 @@ bq_regions_table_id = f"{gcp_project_id}.{bq_raw_dataset}.{bq_regions_table_name
 bq_regions_table_schema = read_json_schema("/home/airflow/gcs/data/schema/regions_schema.json")
 
 # Trips
-bq_temporary_extract_dataset_name = "temporary_staging"
+bq_temporary_extract_dataset_name = "temporary_staging2"
 bq_temporary_extract_table_name = "trips"
 bq_temporary_table_id = f"{gcp_project_id}.{bq_temporary_extract_dataset_name}.{bq_temporary_extract_table_name}"
 
@@ -130,6 +130,7 @@ with DAG(
         SELECT * FROM `bigquery-public-data.san_francisco_bikeshare.bikeshare_trips`
         WHERE DATE(start_date) = DATE('{execution_date}')
         """,
+    location="US",
     use_legacy_sql=False,
     destination_dataset_table=bq_temporary_table_id,
     write_disposition='WRITE_TRUNCATE',
@@ -140,7 +141,7 @@ with DAG(
     source_project_dataset_table=bq_temporary_table_id,
     destination_cloud_storage_uris=[gcs_trips_source_uri],
     print_header=False,
-    export_format='CSV')
+    export_format='CSV',force_rerun=True)
 
     gcs_to_bq_trips = GoogleCloudStorageToBigQueryOperator(
     task_id                             = "gcs_to_bq_trips",
@@ -186,28 +187,28 @@ with DAG(
         priority                    = 'BATCH'
     )
 
-    ### BQ Row Count Checker ###
-    bq_row_count_check_dwh_fact_trips_daily = BigQueryCheckOperator(
-    task_id='bq_row_count_check_dwh_fact_trips_daily',
-    sql=f"""
-    select count(*) from `{bq_fact_trips_daily_table_id}`
-    """,
-    use_legacy_sql=False)
+    # ### BQ Row Count Checker ###
+    # bq_row_count_check_dwh_fact_trips_daily = BigQueryCheckOperator(
+    # task_id='bq_row_count_check_dwh_fact_trips_daily',
+    # sql=f"""
+    # select count(*) from `{bq_fact_trips_daily_table_id}`
+    # """,
+    # use_legacy_sql=False)
 
-    bq_row_count_check_dwh_dim_stations = BigQueryCheckOperator(
-    task_id='bq_row_count_check_dwh_dim_stations',
-    sql=f"""
-    select count(*) from `{bq_dim_stations_table_id}`
-    """,
-    use_legacy_sql=False)
+    # bq_row_count_check_dwh_dim_stations = BigQueryCheckOperator(
+    # task_id='bq_row_count_check_dwh_dim_stations',
+    # sql=f"""
+    # select count(*) from `{bq_dim_stations_table_id}`
+    # """,
+    # use_legacy_sql=False)
 
     ### Load Data Mart ###
     export_mysql_station >> gcs_to_bq_station
     gcs_to_gcs_region >> gcs_to_bq_region
     bq_to_bq_temporary_trips >> bq_to_gcs_extract_trips >> gcs_to_bq_trips
 
-    [gcs_to_bq_station,gcs_to_bq_region,gcs_to_bq_trips] >> dwh_fact_trips_daily >> bq_row_count_check_dwh_fact_trips_daily
-    [gcs_to_bq_station,gcs_to_bq_region,gcs_to_bq_trips] >> dwh_dim_stations >> bq_row_count_check_dwh_dim_stations
+    [gcs_to_bq_station,gcs_to_bq_region,gcs_to_bq_trips] >> dwh_fact_trips_daily 
+    [gcs_to_bq_station,gcs_to_bq_region,gcs_to_bq_trips] >> dwh_dim_stations 
 
 if __name__ == "__main__":
     dag.cli()

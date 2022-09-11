@@ -12,7 +12,7 @@ from airflow.models import Variable
 from datetime import datetime
 
 args = {
-    'owner': 'packt-developer',
+    'owner': 'test',
 }
 
 def read_json_schema(gcs_file_path):
@@ -26,7 +26,7 @@ gcp_project_id = os.environ.get('GCP_PROJECT')
 instance_name  = os.environ.get('MYSQL_INSTANCE_NAME')
 
 # Airflow Variables
-settings = Variable.get("level_3_dag_settings", deserialize_json=True)
+settings = Variable.get("dag_settings", deserialize_json=True)
 
 # DAG Variables
 gcs_source_data_bucket = settings['gcs_source_data_bucket']
@@ -64,7 +64,7 @@ bq_regions_table_id = f"{gcp_project_id}.{bq_raw_dataset}.{bq_regions_table_name
 bq_regions_table_schema = read_json_schema("/home/airflow/gcs/data/schema/regions_schema.json")
 
 # Trips
-bq_temporary_extract_dataset_name = "temporary_staging"
+bq_temporary_extract_dataset_name = "temporary_staging2"
 bq_temporary_extract_table_name = "trips"
 bq_temporary_table_id = f"{gcp_project_id}.{bq_temporary_extract_dataset_name}.{bq_temporary_extract_table_name}_{extracted_date_nodash}"
 
@@ -135,7 +135,7 @@ with DAG(
     use_legacy_sql=False,
     destination_dataset_table=bq_temporary_table_id,
     write_disposition='WRITE_TRUNCATE',
-    create_disposition='CREATE_IF_NEEDED')
+    create_disposition='CREATE_IF_NEEDED',location="US")
 
     bq_to_gcs_extract_trips = BigQueryToCloudStorageOperator(
     task_id='bq_to_gcs_extract_trips',
